@@ -1,2 +1,2 @@
 # CuSAR
-chirp scaling SAR signal processing with CUDA
+Chirp scaling SAR signal processing with CUDA
