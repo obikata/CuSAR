@@ -13,9 +13,15 @@ def get_doppler(fs,wl,state0,r0,nc,ellipsoid_model,orbit_sense,skip_size):
     if ellipsoid_model == 'GRS80':
         RA = global_const.RA
         F1 = global_const.F1
+<<<<<<< HEAD
         # print('Reference ellipsoid model is ',ellipsoid_model, '...', sep='')
     else:
         # print('Reference ellipsoid model is not found...')
+=======
+        print('Reference ellipsoid model is ',ellipsoid_model, '...', sep='')
+    else:
+        print('Reference ellipsoid model is not found...')
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
         return -1
 
     num_skip_rc = np.floor(np.array(nc,dtype='float64')/skip_size).astype(int)

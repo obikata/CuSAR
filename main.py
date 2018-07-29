@@ -27,18 +27,25 @@ import read_bin_as
 import math
 import sys
 import struct
+<<<<<<< HEAD
 import cv2
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
 from phase_func import *
 from read_bin_as import *
 from skcuda import linalg
 from skimage.exposure import rescale_intensity
+<<<<<<< HEAD
 from scipy.ndimage.filters import uniform_filter
 from scipy.ndimage.measurements import variance
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
 import pycuda.autoinit
 linalg.init()
 
+<<<<<<< HEAD
 def lee_filter(img, size):
     img_mean = uniform_filter(img, (size, size))
     img_sqr_mean = uniform_filter(img**2, (size, size))
@@ -48,6 +55,8 @@ def lee_filter(img, size):
     img_output = img_mean + img_weights * (img - img_mean)
     return img_output
 
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 def read_rec_as_arr(fp,nc,nl,skip):
 
     x = np.asarray(np.zeros((nl,nc))+1j*np.zeros((nl,nc)),np.complex64)
@@ -85,9 +94,15 @@ def read_rec_as_arr(fp,nc,nl,skip):
 def main():
 
     parser = argparse.ArgumentParser()
+<<<<<<< HEAD
     parser.add_argument('--path', '-p', default="/media/logicool/73F526A645B63D5B/CuSAR/L10",help='')
     parser.add_argument('--gpu', '-g', default=0,help='') # 0=cpu, 1=gpu, 2=benchmarking (cpu vs gpu)
     parser.add_argument('--nproc', '-n', default=6,help='') # number of process
+=======
+    parser.add_argument('--path', '-p', default="/media/logicool/73F526A645B63D5B/NLCS/L10",help='')
+    parser.add_argument('--gpu', '-g', default=0,help='') # 0=cpu, 1=gpu, 2=benchmarking (cpu vs gpu)
+    parser.add_argument('--nproc', '-n', default=1,help='') # number of process
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
     args = parser.parse_args()
     sArrFilePath = glob.glob(args.path + '/*PALSAR_L10_Tomakomai*')
     flg = int(args.gpu)
@@ -111,7 +126,11 @@ def main():
     nl = 8192 # number of range lines
     
     # phase functions
+<<<<<<< HEAD
     pf1, pf2, pf3, laz, r_shift, dr, daz = phase_func(fp_img,fp_led,nc,nl,orbit_sense)
+=======
+    pf1, pf2, pf3, laz, r_shift = phase_func(fp_img,fp_led,nc,nl,orbit_sense)
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
     nread = nl-laz # length of samples to be read for each process (laz = length of azimuth sample for each process)
 
     if flg == 1 or 2:
@@ -131,8 +150,11 @@ def main():
 
         # cpu
 
+<<<<<<< HEAD
         start = time.time()
 
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
         slc = np.asarray(np.zeros((nc,nproc*nread))+1j*np.zeros((nc,nproc*nread)),np.complex64)
         x0 = np.asarray(np.zeros((nc,nl))+1j*np.zeros((nc,nl)),np.complex64)
         x0[:,slice(0,laz)] = read_rec_as_arr(fp_img,nc,laz,0)
@@ -153,6 +175,7 @@ def main():
             x = np.fft.ifft(x,axis=0)
             x = x*pf3
             x = np.fft.ifft(x,axis=1)
+<<<<<<< HEAD
             slc[:,slice(i*nread,(i+1)*nread)] = x[:,slice(0,nl-laz)]
             x0 = np.roll(x0,-nread,axis=1)
             print(i)
@@ -184,13 +207,29 @@ def main():
         # plt.figure()
         # plt.imshow(dn,cmap='gray')
         # plt.show()
+=======
+            slc[:,slice(i*nread,(i+1)*nread)] = x[:,slice(laz,nl)]
+            x0 = np.roll(x0,-nread,axis=1)
+            print(i)
+
+        # plot cpu result
+        
+        plt.figure()
+        img_amp = np.abs(slc[slice(9800),:])
+        img_amp = rescale_intensity(img_amp,in_range=(0, np.max(img_amp)/20),out_range=(0,255))
+        plt.imshow(np.uint8(img_amp),cmap='gray')
+        plt.show()
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
     elif flg == 1:
     
         # gpu
 
+<<<<<<< HEAD
         start = time.time()
 
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
         slc_gpu = np.asarray(np.zeros((nc,nproc*nread))+1j*np.zeros((nc,nproc*nread)),np.complex64)
         x0 = np.empty((nc, nl, 1), np.complex64)
         x0[:,slice(0,laz),0] = read_rec_as_arr(fp_img,nc,laz,0)
@@ -217,6 +256,7 @@ def main():
             x_gpu[:,:,0] = linalg.transpose(xt_gpu[:,:,0])
             x_gpu[:,:,0] = linalg.misc.multiply(x_gpu[:,:,0],pf3_gpu)
             cu_fft.ifft(x_gpu, x_gpu, az_plan, True)
+<<<<<<< HEAD
             slc_gpu[:,slice(i*nread,(i+1)*nread)] = x_gpu[:,slice(0,nl-laz),0].get()
             x0 = np.roll(x0,-nread,axis=1)
             print(i)
@@ -248,6 +288,18 @@ def main():
         # plt.figure()
         # plt.imshow(dn,cmap='gray')
         # plt.show()
+=======
+            slc_gpu[:,slice(i*nread,(i+1)*nread)] = x_gpu[:,slice(laz,nl),0].get()
+            x0 = np.roll(x0,-nread,axis=1)
+            print(i)
+                
+        # plot gpu result
+        plt.figure()
+        img_amp = np.abs(slc_gpu[slice(9800),:])
+        img_amp = rescale_intensity(img_amp,in_range=(0, np.max(img_amp)/20),out_range=(0,255))
+        plt.imshow(np.uint8(img_amp),cmap='gray')
+        plt.show()
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
     elif flg == 2:
     

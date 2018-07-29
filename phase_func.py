@@ -1,14 +1,20 @@
 import numpy as np
 import struct
 import re
+<<<<<<< HEAD
 import matplotlib.pyplot as plt
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
 from global_const import *
 from read_bin_as import *
 from scipy import interpolate
 from get_doppler import *
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 def phase_func(fp0,fp1,nc,nl,orbit_sense):
 
     # get global constant
@@ -20,6 +26,7 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     for i in range(6):
         fp1.seek(720+ind[i],0)
         tmp[i] = read_bin_as_str(fp1,16)
+<<<<<<< HEAD
     wl = tmp[0]
     prf = tmp[1]*1e-3
     prt = 1/prf
@@ -32,11 +39,25 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     fp0.seek(720+20,0)
     nzp0 = int.from_bytes(fp0.read(4), byteorder='big') # left padding
     nsamp = int.from_bytes(fp0.read(4), byteorder='big') # SAR sample length
+=======
+    wl=tmp[0]
+    prf=tmp[1]*1e-3
+    prt=1/prf
+    fs=tmp[2]*1e6
+    k=-tmp[3]
+    tau=tmp[4]*1e-6
+    theta_azbw=tmp[5]
+    dr=sol/(2*fs)
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
     # calculate r_shift value
 
     fp0.seek(720+8,0)
+<<<<<<< HEAD
     nrec = int.from_bytes(fp0.read(4), byteorder='big')
+=======
+    nrec =  int.from_bytes(fp0.read(4), byteorder='big')
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
     fp0.seek(int(720+288+(64+32+48+96+16+48)/8),0)
     xx = int.from_bytes(fp0.read(2), byteorder='big')
@@ -55,6 +76,7 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     tad2 = tad_tmp/2**10*1023E-6
 
     fp0.seek(720+116,0)
+<<<<<<< HEAD
     sr0_rec = np.array(struct.unpack('>I',fp0.read(4)))
 
     t_nr = 2*sr0_rec/sol
@@ -64,10 +86,24 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     t_nr = pdc*prt+tad2+toff
     sr = sol/2*t_nr
  
+=======
+    sr0_rec=np.array(struct.unpack('>I',fp0.read(4)))
+
+    t_nr = 2*sr0_rec/sol
+    pdc = np.floor(t_nr/prt)
+
+    toff = -8.31539*1e-6
+    t_nr = pdc*prt+tad2+toff
+    sr = sol/2*t_nr
+
+    sr_max = np.max(sr)
+
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
     r_shift = np.ceil((sr-sr[0])/dr)
 
     # get satellite state
 
+<<<<<<< HEAD
     # fp1.seek(720+4096+12,0)
     # flag = read_bin_as_str(fp1,1)
     # if flag == '0':
@@ -80,6 +116,20 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     # fp1.seek(720+4096+204,0)
     # orb_type = read_bin_as_str(fp1,3)
     # print(' in ',orb_type, '...', sep='')
+=======
+    fp1.seek(720+4096+12,0)
+    flag = read_bin_as_str(fp1,1)
+    if flag == '0':
+        print('Loading predicted ephemeris', end="")
+    elif flag == '1':
+        print('Loading GPS ephemeris', end="")
+    elif flag == '2':
+        print('Loading precise ephemeris', end="")
+
+    fp1.seek(720+4096+204,0)
+    orb_type = read_bin_as_str(fp1,3)
+    print(' in ',orb_type, '...', sep='')
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
 
     fp1.seek(720+4096+140,0)
     num_state_pts = read_bin_as_int(fp1,4)
@@ -136,6 +186,7 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     dc_full = dc_function(np.arange(nc))
     dr_function = interpolate.PchipInterpolator(doppler_table[:,0],doppler_table[:,4],0)
     dr_full = dr_function(np.arange(nc))
+<<<<<<< HEAD
     dc_full = dc_full*0
 
     # azimuth parameters
@@ -150,19 +201,41 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     rcm1 = rcm[int(nc/2),:]
     # rcm_dif=rcm_dr-np.tile(rcm_dr[int(nc/2),:],(nc,1))
     rcm1 = np.roll(rcm1,int(nl/2))
+=======
+
+    # azimuth parameters
+    az_res = 10
+    daz = prt*vel
+    laz = int(4*np.ceil(np.max(r_full)*wl/(4*az_res*2*daz)))
+    taz = prt*(np.arange(laz))-laz/2*prt
+    
+    # bulk scaling (referance cell = nc/2)
+    rcm_dr=wl**2*(np.tile(faz,(nc,1))-np.tile(dc_full,(nl,1)).T)**2*np.tile(r_full,(nl,1)).T/(8*vel**2)
+    rcm=rcm_dr/dr
+    rcm1=rcm[int(nc/2),:]
+    rcm_dif=rcm_dr-np.tile(rcm_dr[int(nc/2),:],(nc,1))
+    rcm1=np.roll(rcm1,int(nl/2))
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
     phi = np.roll(np.arange(int(-nc/2),int(nc/2))*2*np.pi/nc,int(-nc/2))
     phi = np.tile(phi,(nl,1)).T*np.tile(rcm1,(nc,1))
     bulk = np.asarray(np.cos(phi) + 1j*np.sin(phi), np.complex64)
 
     # diff scaling (referance cell = nc/2)
+<<<<<<< HEAD
     faz = np.roll(faz,int(nl/2),axis=1)
+=======
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
     trg = (np.arange(nc)-nc/2)/fs
     sc1 = faz**2
     sc2 = 2*k/sol*wl*(1/(4*dr_full)-1/(4*dr_full[int(nc/2)]))*trg
     sc_arr = np.tile(sc1,(nc,1))*np.transpose(np.tile(sc2,(nl,1)))
     phi = 2*np.pi*sc_arr
     diff = np.asarray(np.cos(phi) + 1j*np.sin(phi), np.complex64)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
     ##############################################################################
     ############################## phase function 1 ##############################
     ##############################################################################
@@ -212,16 +285,29 @@ def phase_func(fp0,fp1,nc,nl,orbit_sense):
     # phi[:,slice(laz)] = np.cos(phi[:,slice(laz)]) + 1j* np.sin(phi[:,slice(laz)])
     # phi = np.fft.fft(phi,axis=1)
 
+<<<<<<< HEAD
     # azimuth matched filter &phase correction
     sc3 = -np.roll(sc2,-int(np.ceil(fs*tau)/2))
     phi = np.tile(sc1,(nc,1))*np.transpose(np.tile(1/(2*dr_full)+sc3,(nl,1)))+np.tile((laz*prt/2)*faz,(nc,1))
     phi = np.exp(2*np.pi*1j*phi)
 
     # kaiser x azmf x phase_correction
+=======
+    # azimuth matched filter with phase correction
+    sc3=-np.roll(sc2,-int(np.ceil(fs*tau)/2))
+    phi=np.tile(sc1,(nc,1))*np.transpose(np.tile(1/(2*dr_full)+sc3,(nl,1)))+np.tile((laz*prt)*faz,(nc,1))
+    phi = np.exp(2*np.pi*1j*phi)
+
+    # kaiser x azmf_phase
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
     phi = np.tile(kaiser_window,(nc,1))*phi
 
     phi3 = np.asarray(phi,dtype='complex64')
 
     ##########################################################################################################################################
 
+<<<<<<< HEAD
     return phi1, phi2, phi3, laz, r_shift, dr, daz
+=======
+    return phi1, phi2, phi3, laz, r_shift
+>>>>>>> 549cf963b095fe8da148f5bc11bff1f71073c5c6
